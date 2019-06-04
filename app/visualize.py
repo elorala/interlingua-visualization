@@ -278,7 +278,7 @@ def principal_window(input_file):
 
 
 def comparing_layers(input_files, nbr_lang):
-    output_file(filename="dashboards/intermediate_layer_%s.html" % nbr_lang, title='Decoding Layers')
+    output_file(filename="../dashboards/intermediate_layer_%s.html" % nbr_lang, title='Decoding Layers')
 
     ###################################################
     # PREPARING DATA
@@ -453,7 +453,7 @@ def comparing_layers(input_files, nbr_lang):
 
 
 def principal_window_without_sentences(input_file):
-    output_file("dashboards/without_sentence.html")
+    output_file("../dashboards/without_sentence.html")
 
     ###################################################
     # PREPARING DATA
@@ -545,7 +545,7 @@ def principal_window_without_sentences(input_file):
 
 
 def principal_window_words(inputs_file):
-    output_file(filename="dashboards/words_representations.html", title="Words representations")
+    output_file(filename="../dashboards/words_representations.html", title="Words representations")
 
     ###################################################
     # PREPARING DATA
@@ -663,7 +663,7 @@ def principal_window_words(inputs_file):
 
 
 def mapping_sentences_words(input_file):
-    output_file(filename="dashboards/sentences_words.html", title="Intermediate representations")
+    output_file(filename="../dashboards/sentences_words.html", title="Intermediate representations")
 
     ###################################################
     # PREPARING DATA
@@ -804,7 +804,7 @@ if __name__ == '__main__':
     #                   'decodings_en_layer3.json',
     #                   'decodings_en_layer4.json',
     #                   'decodings_en_layer5.json'], 3)
-    # principal_window_words(['data_words_en.json',
-    #                         'data_words_es.json',
-    #                         'data_words_fr.json'])
-    mapping_sentences_words("data_umap_3lang.json")
+    principal_window_words(['../data/data_words_en.json',
+                            '../data/data_words_es.json',
+                            '../data/data_words_fr.json'])
+    mapping_sentences_words("../data/data_umap_3lang.json")
