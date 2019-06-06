@@ -491,4 +491,3 @@ if __name__ == '__main__':
                            (en_sentences_data, en_words_data),
                            (es_sentences_data, es_words_data),
                            (fr_sentences_data, fr_words_data))
-    logger.info('zboub')

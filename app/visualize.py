@@ -5,8 +5,8 @@ from bokeh.plotting import figure, output_file, show, curdoc
 from bokeh.models import ColumnDataSource, HoverTool, CustomJS, Div, Slider, TapTool, TextInput
 from bokeh.layouts import gridplot, column, layout, row
 from bokeh.transform import factor_cmap
-from bokeh.palettes import viridis
-from bokeh.models.widgets import DataTable, TableColumn
+from bokeh.palettes import viridis, Spectral6
+from bokeh.models.widgets import DataTable, TableColumn, AutocompleteInput
 from scipy.spatial.distance import cdist
 
 
@@ -159,7 +159,7 @@ def highlight_sentences(input_file):
 
 
 def principal_window(input_file):
-    output_file(filename="dashboards/hover_callback.html", title="Intermediate representations")
+    output_file(filename="../dashboards/hover_callback.html", title="Intermediate representations")
 
     ###################################################
     # PREPARING DATA
@@ -670,33 +670,57 @@ def mapping_sentences_words(input_file):
     ###################################################
 
     index = 0
+    id_sentence = list()
+    id_word = list()
     x = list()
     y = list()
     sentences = list()
-    language = list()
+    language_sentence = list()
+    language_word = list()
+    words = list()
+    x_words = list()
+    y_words = list()
     links = dict()
     with open(input_file, 'r') as file:
         array = json.load(file)
         data = array['content']
-        for translation in data:
-            for lang, info in translation.items():
-                language.append(lang)
-                sentences.append(info[0])
-                x.append(info[1][0])
-                y.append(info[1][1])
-            links[index] = [index + 1, index + 2]
-            links[index + 1] = [index, index + 2]
-            links[index + 2] = [index, index + 1]
-            index += 3
+        for idx, translations in data.items():
+            nbr_lang = len(translations)
+            for lang, info in translations.items():
+                id_sentence.append(idx)
+                language_sentence.append(lang)
+                sentences.append(info['sentence'])
+                x.append(info['embedding'][0])
+                y.append(info['embedding'][1])
+                for word, emb in info['words'].items():
+                    id_word.append(idx)
+                    language_word.append(lang)
+                    words.append(word)
+                    x_words.append(emb[0])
+                    y_words.append(emb[1])
+            for i in range(nbr_lang):
+                links[index + i] = [index + j for j in range(nbr_lang) if j != i]
+            index += nbr_lang
 
-        source_dict = {
+        source_sentence_dict = {
+            "id": id_sentence,
             "x": x,
             "y": y,
-            "lang": language,
+            "lang": language_sentence,
             "sentence": sentences
         }
 
-    source_sentences = ColumnDataSource(source_dict)
+        source_word_dict = {
+            "id": id_word,
+            "x": x_words,
+            "y": y_words,
+            "lang": language_word,
+            "word": words
+        }
+
+    source_sentences = ColumnDataSource(source_sentence_dict)
+    source_words = ColumnDataSource(source_word_dict)
+    source_words_visible = ColumnDataSource(source_word_dict)
 
     ###################################################
     # SET UP SENTENCE FIGURE
@@ -706,14 +730,14 @@ def mapping_sentences_words(input_file):
     p = figure(plot_width=800, plot_height=700, tools=tools, title='Intermediate representations')
 
     cr = p.circle('x', 'y',
-                  size=6, alpha=0.4,
+                  size=6, alpha=0.6,
                   hover_color='yellow', hover_alpha=1.0,
                   source=source_sentences,
-                  color=factor_cmap('lang', ['red', 'blue', 'green'], ['en', 'fr', 'es']),
+                  color=factor_cmap('lang',
+                                    palette=['red', 'blue', 'green'],
+                                    factors=['en', 'fr', 'es']),
                   legend='lang',
-                  name="data")
-
-    p.legend.click_policy = "hide"
+                  name="sentences")
 
     ###################################################
     # SET UP LINKS BETWEEN TRANSLATIONS
@@ -752,37 +776,67 @@ def mapping_sentences_words(input_file):
         ("sentence", "@sentence"),
     ]
     hover.names = [
-        "data"
+        "sentences"
     ]
 
     ###################################################
     # SET UP WORD FIGURE
     ###################################################
 
-    source_words = ColumnDataSource(data=dict(x=[], y=[]))
-    p_w = figure(title='Words', tools="")
-    p_w.circle('x', 'y', source=source_words, alpha=0.6)
+    p_w = figure(title='Words', tools="reset")
+    p_w.circle('x', 'y',
+               size=6, alpha=0.6,
+               hover_color='yellow', hover_alpha=1.0,
+               selection_color='yellow',
+               nonselection_color='white',
+               source=source_words_visible,
+               color=factor_cmap('lang',
+                                 palette=['red', 'blue', 'green'],
+                                 factors=['en', 'fr', 'es']),
+               legend='lang',
+               name="words")
 
-    source_sentences.selected.js_on_change('indices', CustomJS(args=dict(s1=source_sentences, s2=source_words), code="""
+    hover_word = HoverTool(tooltips=[('word', '@word')],
+                           names=['words'])
+    p_w.add_tools(hover_word)
+
+    source_sentences.selected.js_on_change('indices', CustomJS(args=dict(sentences=source_sentences,
+                                                                         words=source_words,
+                                                                         words_visible=source_words_visible),
+                                                               code="""
             var inds = cb_obj.indices;
-            var d1 = s1.data;
-            var d2 = s2.data;
-            d2['x'] = []
-            d2['y'] = []
-            for (var i = 0; i < inds.length; i++) {
-                d2['x'].push(d1['x'][inds[i]])
-                d2['y'].push(d1['y'][inds[i]])
+            var sentences = sentences.data;
+            var words = words.data;
+            var words_visible = words_visible.data
+            
+            words_visible.id = []
+            words_visible.x = []
+            words_visible.y = []
+            words_visible.lang = []
+            words_visible.word = []
+            
+            console.log(sentences.id[inds])
+            for (var i = 0; i < words.x.length; i++) {
+                if (words.id[i] == sentences.id[inds]) {
+                    words_visible.id.push(words.id[i])
+                    words_visible.x.push(words.x[i])
+                    words_visible.y.push(words.y[i])
+                    words_visible.lang.push(words.lang[i])
+                    words_visible.word.push(words.word[i])
+                }
             }
-            s2.change.emit();
+            words_visible.change.emit();
         """)
                                            )
+
+    text_input = AutocompleteInput(title='Search a sentence', completions=sentences)
 
     ###################################################
     # CREATION OF THE LAYOUT
     ###################################################
 
     # window = layout([p, words], sizing_mode='stretch_both')
-    window = row(p, p_w)
+    window = row(p, column(p_w, text_input))
     show(window)
 
 
@@ -804,7 +858,7 @@ if __name__ == '__main__':
     #                   'decodings_en_layer3.json',
     #                   'decodings_en_layer4.json',
     #                   'decodings_en_layer5.json'], 3)
-    principal_window_words(['../data/data_words_en.json',
-                            '../data/data_words_es.json',
-                            '../data/data_words_fr.json'])
-    mapping_sentences_words("../data/data_umap_3lang.json")
+    # principal_window_words(['../data/data_words_en.json',
+    #                         '../data/data_words_es.json',
+    #                         '../data/data_words_fr.json'])
+    mapping_sentences_words("../data/data_mapping_sentences_words.json")
