@@ -170,6 +170,17 @@ source_sentences.selected.on_change('indices', update_words)
 
 text_input = AutocompleteInput(title='Search a sentence', completions=sentences)
 
+
+def update_sentences(attr, old, new):
+    sentence = text_input.value
+    print(sentence)
+    ind = [j for j, sent in enumerate(source_sentences.data['sentence']) if sent == sentence]
+    print(ind)
+    print(source_sentences.selected.indices)
+    source_sentences.selected.indices = ind
+
+
+text_input.on_change('value', update_sentences)
 reset_button = Button(label='ALL WORDS', button_type='primary')
 reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=source_words, p=p), code="""
     p.reset.emit()
