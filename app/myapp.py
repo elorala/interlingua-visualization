@@ -1,9 +1,9 @@
 import json
 from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource, HoverTool, CustomJS
+from bokeh.models import ColumnDataSource, HoverTool, CustomJS, Div
 from bokeh.transform import factor_cmap
-from bokeh.models.widgets import AutocompleteInput
-from bokeh.layouts import column, row
+from bokeh.models.widgets import AutocompleteInput, Button
+from bokeh.layouts import column, row, widgetbox
 
 
 ###################################################
@@ -80,6 +80,8 @@ cr = p.circle('x', 'y',
               legend='lang',
               name="sentences")
 
+p.legend.background_fill_alpha = 0.4
+
 ###################################################
 # SET UP LINKS BETWEEN TRANSLATIONS
 ###################################################
@@ -124,7 +126,7 @@ hover.names = [
 # SET UP WORD FIGURE
 ###################################################
 
-p_w = figure(title='Words', tools="reset")
+p_w = figure(title='Words representations', tools="reset")
 p_w.circle('x', 'y',
            size=6, alpha=0.6,
            hover_color='yellow', hover_alpha=1.0,
@@ -137,45 +139,49 @@ p_w.circle('x', 'y',
            legend='lang',
            name="words")
 
+p_w.legend.background_fill_alpha = 0.4
+
 hover_word = HoverTool(tooltips=[('word', '@word')],
                        names=['words'])
 p_w.add_tools(hover_word)
 
-source_sentences.selected.js_on_change('indices', CustomJS(args=dict(sentences=source_sentences,
-                                                                     words=source_words,
-                                                                     words_visible=source_words_visible),
-                                                           code="""
-        var inds = cb_obj.indices;
-        var sentences = sentences.data;
-        var words = words.data;
-        var words_visible = words_visible.data
 
-        words_visible.id = []
-        words_visible.x = []
-        words_visible.y = []
-        words_visible.lang = []
-        words_visible.word = []
+def update_words(attr, old, new):
+    source_words_visible_dict = {
+        "id": [],
+        "x": [],
+        "y": [],
+        "lang": [],
+        "word": []
+    }
+    for indice in new:
+        indice_sentence = source_sentences.data['id'][indice]
+        for idx, indice_word in enumerate(source_words.data['id']):
+            if indice_word == indice_sentence:
+                source_words_visible_dict['id'].append(source_words.data['id'][idx])
+                source_words_visible_dict['x'].append(source_words.data['x'][idx])
+                source_words_visible_dict['y'].append(source_words.data['y'][idx])
+                source_words_visible_dict['lang'].append(source_words.data['lang'][idx])
+                source_words_visible_dict['word'].append(source_words.data['word'][idx])
+    source_words_visible.data = source_words_visible_dict
 
-        console.log(sentences.id[inds])
-        for (var i = 0; i < words.x.length; i++) {
-            if (words.id[i] == sentences.id[inds]) {
-                words_visible.id.push(words.id[i])
-                words_visible.x.push(words.x[i])
-                words_visible.y.push(words.y[i])
-                words_visible.lang.push(words.lang[i])
-                words_visible.word.push(words.word[i])
-            }
-        }
-        words_visible.change.emit();
-    """)
-                                       )
+
+source_sentences.selected.on_change('indices', update_words)
 
 text_input = AutocompleteInput(title='Search a sentence', completions=sentences)
+
+reset_button = Button(label='ALL WORDS', button_type='primary')
+reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=source_words, p=p), code="""
+    p.reset.emit()
+    source.data = words.data
+"""))
 
 ###################################################
 # CREATION OF THE LAYOUT
 ###################################################
 
-window = row(p, column(p_w, text_input))
+window = row(p,
+             column(row(widgetbox(text_input), column(Div(text="", height=0), reset_button)),
+                    p_w))
 
 curdoc().add_root(window)
