@@ -67,8 +67,9 @@ source_words_visible = ColumnDataSource(source_word_dict)
 # SET UP SENTENCE FIGURE
 ###################################################
 
-tools = "hover, tap, box_select, reset, help"
-p = figure(plot_width=800, plot_height=700, tools=tools, title='Intermediate representations')
+tools = "pan, hover, tap, box_select, reset"
+p = figure(plot_width=800, plot_height=700, tools=tools, title='Intermediate representations of sentences',
+           sizing_mode='scale_width')
 
 cr = p.circle('x', 'y',
               size=6, alpha=0.6,
@@ -113,8 +114,10 @@ segment.data = data;
 
 callback = CustomJS(args={'circle': cr.data_source,
                           'segment': sr.data_source}, code=code)
-p.add_tools(HoverTool(callback=callback, renderers=[cr]))
+# p.add_tools(HoverTool(callback=callback, renderers=[cr]))
 hover = p.select(dict(type=HoverTool))
+hover.callback = callback
+hover.renderers = [cr]
 hover.tooltips = [
     ("sentence", "@sentence"),
 ]
@@ -126,11 +129,11 @@ hover.names = [
 # SET UP WORD FIGURE
 ###################################################
 
-p_w = figure(title='Words representations', tools="reset")
+p_w = figure(title='Words representations', tools="pan, reset", plot_width=600, plot_height=609,
+             sizing_mode='scale_width')
 p_w.circle('x', 'y',
            size=6, alpha=0.6,
            hover_color='yellow', hover_alpha=1.0,
-           selection_color='yellow',
            nonselection_color='white',
            source=source_words_visible,
            color=factor_cmap('lang',
@@ -154,10 +157,12 @@ def update_words(attr, old, new):
         "lang": [],
         "word": []
     }
+    indices = []
     for indice in new:
         indice_sentence = source_sentences.data['id'][indice]
         for idx, indice_word in enumerate(source_words.data['id']):
             if indice_word == indice_sentence:
+                # indices.append(idx)
                 source_words_visible_dict['id'].append(source_words.data['id'][idx])
                 source_words_visible_dict['x'].append(source_words.data['x'][idx])
                 source_words_visible_dict['y'].append(source_words.data['y'][idx])
@@ -165,23 +170,31 @@ def update_words(attr, old, new):
                 source_words_visible_dict['word'].append(source_words.data['word'][idx])
     source_words_visible.data = source_words_visible_dict
 
+    # source_words_visible.selected.indices = indices
+
 
 source_sentences.selected.on_change('indices', update_words)
 
-text_input = AutocompleteInput(title='Search a sentence', completions=sentences)
+###################################################
+# ADD TEXT INPUT
+###################################################
+
+text_input = AutocompleteInput(title='Select a sentence', completions=sentences)
 
 
 def update_sentences(attr, old, new):
     sentence = text_input.value
-    print(sentence)
     ind = [j for j, sent in enumerate(source_sentences.data['sentence']) if sent == sentence]
-    print(ind)
-    print(source_sentences.selected.indices)
     source_sentences.selected.indices = ind
 
 
 text_input.on_change('value', update_sentences)
-reset_button = Button(label='ALL WORDS', button_type='primary')
+
+###################################################
+# ADD RESET BUTTON
+###################################################
+
+reset_button = Button(label='ALL WORDS', button_type='primary', sizing_mode='fixed')
 reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=source_words, p=p), code="""
     p.reset.emit()
     source.data = words.data
@@ -194,5 +207,5 @@ reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=s
 window = row(p,
              column(row(widgetbox(text_input), column(Div(text="", height=0), reset_button)),
                     p_w))
-
+curdoc().title = 'Interligua Visualization'
 curdoc().add_root(window)
