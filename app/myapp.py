@@ -3,7 +3,7 @@ from bokeh.plotting import figure, curdoc
 from bokeh.models import ColumnDataSource, HoverTool, CustomJS, Div
 from bokeh.transform import factor_cmap
 from bokeh.models.widgets import AutocompleteInput, Button
-from bokeh.layouts import column, row, widgetbox
+from bokeh.layouts import column, row, widgetbox, gridplot
 
 
 ###################################################
@@ -68,7 +68,8 @@ source_words_visible = ColumnDataSource(source_word_dict)
 ###################################################
 
 tools = "pan, hover, tap, box_select, reset"
-p = figure(plot_width=800, plot_height=700, tools=tools, title='Intermediate representations of sentences')
+p = figure(tools=tools, title='Intermediate representations of sentences', sizing_mode='stretch_both',
+           plot_width=800, plot_height=691)
 
 cr = p.circle('x', 'y',
               size=6, alpha=0.6,
@@ -113,7 +114,6 @@ segment.data = data;
 
 callback = CustomJS(args={'circle': cr.data_source,
                           'segment': sr.data_source}, code=code)
-# p.add_tools(HoverTool(callback=callback, renderers=[cr]))
 hover = p.select(dict(type=HoverTool))
 hover.callback = callback
 hover.renderers = [cr]
@@ -128,7 +128,7 @@ hover.names = [
 # SET UP WORD FIGURE
 ###################################################
 
-p_w = figure(title='Words representations', tools="pan, reset", plot_width=600, plot_height=609)
+p_w = figure(title='Words representations', tools="pan, reset", sizing_mode='scale_width')
 p_w.circle('x', 'y',
            size=6, alpha=0.6,
            hover_color='yellow', hover_alpha=1.0,
@@ -192,7 +192,7 @@ text_input.on_change('value', update_sentences)
 # ADD RESET BUTTON
 ###################################################
 
-reset_button = Button(label='ALL WORDS', button_type='primary', sizing_mode='fixed')
+reset_button = Button(label='ALL WORDS', button_type='primary', sizing_mode='scale_width')
 reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=source_words, p=p), code="""
     p.reset.emit()
     source.data = words.data
@@ -203,7 +203,8 @@ reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=s
 ###################################################
 
 window = row(p,
-             column(row(widgetbox(text_input), column(Div(text="", height=1), reset_button)),
+             column(row(widgetbox(text_input), column(Div(text="", height=0), reset_button)),
                     p_w))
+
 curdoc().title = 'Interligua Visualization'
 curdoc().add_root(window)
