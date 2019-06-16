@@ -69,7 +69,9 @@ source_words_visible = ColumnDataSource(source_word_dict)
 
 tools = "pan, hover, tap, box_select, reset"
 p = figure(tools=tools, title='Intermediate representations of sentences', sizing_mode='stretch_both',
-           plot_width=800, plot_height=691)
+           plot_width=800, plot_height=692)
+p.toolbar.autohide = True
+
 
 cr = p.circle('x', 'y',
               size=6, alpha=0.6,
@@ -128,7 +130,9 @@ hover.names = [
 # SET UP WORD FIGURE
 ###################################################
 
-p_w = figure(title='Words representations', tools="pan, reset", sizing_mode='scale_width')
+p_w = figure(title='Words representations', tools="pan, reset", sizing_mode='scale_width',
+             plot_width=600, plot_height=600)
+p_w.toolbar.autohide = True
 p_w.circle('x', 'y',
            size=6, alpha=0.6,
            hover_color='yellow', hover_alpha=1.0,
@@ -204,7 +208,7 @@ reset_button.js_on_click(CustomJS(args=dict(source=source_words_visible, words=s
 
 window = row(p,
              column(row(widgetbox(text_input), column(Div(text="", height=0), reset_button)),
-                    p_w))
+                    p_w, width=600))
 
 curdoc().title = 'Interligua Visualization'
 curdoc().add_root(window)
