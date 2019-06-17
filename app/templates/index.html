@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <meta charset="UTF-8">
     <title>Interlingua Visualization</title>
 </head>
 <body>
-<div class="row">
-  <div class="column"><p>
-Visualize intermediate representations :
+<div class="w3-container">
+    <h1>Interlingua Visualization</h1>
+    <h4>You will find here some tools to visualise the vectors from your Neural Machine Translation model.</h4>
+    <hr>
+<div class="w3-container">
+<div class="w3-row">
+  <div class="w3-col s6 w3-center"><p>
+      <h2>Interlingua Viewer</h2>
     <form method="post">
     <a href="{{ url_for('interlingua') }}">
     <img alt="interlingua" src="{{url_for('static', filename='intermediate.png')}}" width="500" height="300">
     </a>
     </form>
-  </p></div>
-  <div class="column"><p>
-Visualize decoders layers :
+      This tool helps you to visualise intermediate<br> representations of sentences and their words.
+      </p></div>
+  <div class="w3-col s6 w3-center"><p>
+      <h2>Decoder Viewer</h2>
     <form method="post">
     <a href="{{ url_for('decoders') }}">
     <img alt="decoders" src="{{url_for('static', filename='decoder.png')}}" width="500" height="300">
     </a>
     </form>
-  </p></div>
+      This tool helps you to visualise the evolution of <br> the embeddings within the layers of the decoders. </p></div>
+</div>
+</div>
 </div>
 </body>
 </html>
