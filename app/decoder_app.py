@@ -1,9 +1,9 @@
 import json
 from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource, HoverTool, CustomJS, Div
+from bokeh.models import ColumnDataSource, HoverTool
 from bokeh.transform import factor_cmap
 from bokeh.models.widgets import Select
-from bokeh.layouts import column, row, widgetbox, gridplot
+from bokeh.layouts import column, gridplot
 from scipy.spatial.distance import cdist
 
 

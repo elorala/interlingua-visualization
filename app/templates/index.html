@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interlingua Visualization</title>
+</head>
+<body>
+<div class="row">
+  <div class="column"><p>
+Visualize intermediate representations :
+    <form method="post">
+    <a href="{{ url_for('interlingua') }}">
+    <img alt="interlingua" src="{{url_for('static', filename='intermediate.png')}}" width="500" height="300">
+    </a>
+    </form>
+  </p></div>
+  <div class="column"><p>
+Visualize decoders layers :
+    <form method="post">
+    <a href="{{ url_for('decoders') }}">
+    <img alt="decoders" src="{{url_for('static', filename='decoder.png')}}" width="500" height="300">
+    </a>
+    </form>
+  </p></div>
+</div>
+</body>
+</html>
