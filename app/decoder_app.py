@@ -156,7 +156,7 @@ for layer in range(nbr_layer):
 ###################################################
 # SET UP SELECT LANGUAGE
 ###################################################
-select = Select(title="Select a language", options=['decoders to English', 'decoders to Spanish'])
+select = Select(title="Select a language", options=['decoders to English', 'decoders to Spanish'], sizing_mode='fixed')
 
 
 def update_plots(attrname, old, new):

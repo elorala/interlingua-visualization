@@ -18,7 +18,7 @@ def interlingua():
     with pull_session(url=interlingua_url) as session:
         script = server_session(session_id=session.id, url=interlingua_url)
 
-        return render_template("interlingua.html", script=script)
+        return render_template("interlingua.html", script=script, template="Flask")
 
 
 @app.route('/decoders')
@@ -26,7 +26,7 @@ def decoders():
     with pull_session(url=decoders_url) as session:
         script = server_session(session_id=session.id, url=decoders_url)
 
-        return render_template("decoders.html", script=script)
+        return render_template("decoders.html", script=script, template="Flask")
 
 
 if __name__ == '__main__':
