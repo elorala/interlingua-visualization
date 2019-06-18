@@ -1,5 +1,10 @@
 # Interlingua Visualization
 
+**Requirements :**
+* Python 3.7.2
+* Bokeh >= 1.0.4
+* Flask 1.0.3
+
 In order to run the website, you need to run the bokeh server first. 
 
 ## Step 1
