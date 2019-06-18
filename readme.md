@@ -10,7 +10,7 @@ In order to run the website, you need to run the bokeh server first.
 ## Step 1
 To run the app with the intermediate representations, first execute this command at the root of the repository : 
 ```
- bokeh serve --port 5100 --allow-websocket-origin localhost:8080 --allow-websocket-origin 127.0.0.1:8080 app/myapp.py
+ bokeh serve --port 5200 --allow-websocket-origin localhost:8080 --allow-websocket-origin 127.0.0.1:8080 app/myapp.py
 ```
 
 ## Step 2
